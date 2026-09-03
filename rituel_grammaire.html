@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rituel Grammaire</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap');
 
@@ -1104,15 +1104,15 @@ function scanFrame() {
   ctx.drawImage(video, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  document.getElementById('camera-info').textContent = `Flux OK : ${canvas.width}x${canvas.height}px — scan en cours...`;
 
-  const code = jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: 'attemptBoth'
-  });
-
-  if (code) {
-    document.getElementById('camera-info').textContent = '🔍 Lu : ' + code.data;
-    handleQR(code.data);
+  try {
+    const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
+    const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
+    const result = new ZXing.MultiFormatReader().decode(binaryBitmap);
+    document.getElementById('camera-info').textContent = '🔍 Lu : ' + result.getText();
+    handleQR(result.getText());
+  } catch(e) {
+    document.getElementById('camera-info').textContent = `Flux OK : ${canvas.width}x${canvas.height}px — scan en cours...`;
   }
 }
 
