@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rituel Grammaire</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap');
+
+:root {
+  --g1: #C62828; --g2: #1565C0; --g3: #2E7D32; --g4: #E65100; --g5: #6A1B9A;
+  --bg: #F7F4EF; --card: #FFFFFF; --text: #1A1A1A; --muted: #888;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+h1, h2, h3 { font-family: 'Baloo 2', cursive; }
+
+/* ── ÉCRANS ── */
+.screen { display: none; padding: 16px; max-width: 900px; margin: 0 auto; }
+.screen.active { display: block; }
+
+/* ── SETUP ── */
+.setup-hero {
+  text-align: center;
+  padding: 32px 16px 24px;
+}
+.setup-hero h1 { font-size: 2.2rem; color: var(--text); }
+.setup-hero p  { color: var(--muted); font-size: 1rem; margin-top: 6px; }
+
+.phrase-library {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 220px; overflow-y: auto;
+  margin-bottom: 12px;
+}
+.lib-item {
+  background: var(--card);
+  border: 1.5px solid #E0DDD8;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.lib-item:hover { border-color: #7F77DD; background: #EEEDFE; }
+.lib-item.selected { border-color: #7F77DD; background: #EEEDFE; }
+.lib-src { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.card-box {
+  background: var(--card);
+  border: 1.5px solid #E0DDD8;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.card-box h3 { font-size: 1rem; color: var(--muted); margin-bottom: 10px; font-family: 'Nunito', sans-serif; font-weight: 700; }
+
+.word-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 20px;
+  border: 1.5px solid #E0DDD8;
+  font-size: 13px; font-weight: 600;
+  margin: 3px; cursor: pointer;
+  background: var(--card);
+  transition: all .15s;
+}
+.word-tag:hover { border-color: #999; }
+
+.nature-select {
+  border: 1.5px solid #E0DDD8;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+/* ── BOUTONS ── */
+.btn {
+  border: 1.5px solid #D0CCC8;
+  background: var(--card);
+  border-radius: 10px;
+  padding: 8px 18px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  color: var(--text);
+  transition: all .15s;
+}
+.btn:hover { background: #F0EDE8; }
+.btn-primary {
+  background: #7F77DD; border-color: #7F77DD; color: #fff;
+}
+.btn-primary:hover { background: #534AB7; border-color: #534AB7; }
+.btn-danger { background: #C62828; border-color: #C62828; color: #fff; }
+.btn-danger:hover { background: #8B1A1A; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+/* ── GAME ── */
+.game-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.game-phrase {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-family: 'Baloo 2', cursive;
+  margin-bottom: 14px;
+  line-height: 1.8;
+  letter-spacing: .01em;
+  border: 1.5px solid #E0DDD8;
+}
+.word-chip {
+  display: inline-block;
+  margin: 3px 4px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 2px solid #D0CCC8;
+  background: var(--card);
+  cursor: default;
+  transition: all .2s;
+  font-family: 'Baloo 2', cursive;
+}
+.word-chip.current  { border-color: #7F77DD; background: #EEEDFE; color: #3C3489; }
+.word-chip.done-ok  { border-color: #1D9E75; background: #E1F5EE; color: #085041; }
+.word-chip.done-err { border-color: #C62828; background: #FCEBEB; color: #7A1515; }
+
+/* Groupes */
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.group-card {
+  background: var(--card);
+  border: 2px solid var(--gc);
+  border-radius: 12px;
+  padding: 10px 6px;
+  text-align: center;
+}
+.group-card .gname { font-size: 12px; font-weight: 700; color: var(--gc); }
+.group-card .gscore { font-size: 26px; font-weight: 800; font-family: 'Baloo 2', cursive; color: var(--gc); }
+.group-card .ganswer { font-size: 10px; color: var(--muted); margin-top: 2px; min-height: 14px; }
+
+/* Chenilles */
+.track-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  border: 1.5px solid #E0DDD8;
+}
+.track-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.track-row:last-child { margin-bottom: 0; }
+.track-label { font-size: 12px; font-weight: 700; min-width: 60px; }
+.track-bar { flex: 1; position: relative; height: 26px; }
+.track-bg {
+  position: absolute; inset: 5px 0;
+  border-radius: 20px; background: #EEE;
+}
+.track-fill {
+  position: absolute; top: 5px; bottom: 5px; left: 0;
+  border-radius: 20px; min-width: 26px;
+  transition: width .6s cubic-bezier(.34,1.56,.64,1);
+}
+.track-worm {
+  position: absolute; top: -3px;
+  font-size: 22px;
+  transition: left .6s cubic-bezier(.34,1.56,.64,1);
+  transform: translateX(-50%);
+}
+.track-pts { font-size: 13px; font-weight: 700; min-width: 22px; text-align: right; }
+
+/* Zone scan */
+.scan-zone {
+  background: var(--card);
+  border: 1.5px solid #E0DDD8;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.current-word-display {
+  text-align: center;
+  font-size: 2rem;
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800;
+  color: #7F77DD;
+  margin-bottom: 12px;
+}
+.scan-status {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.scan-group-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #F7F4EF;
+  border: 1.5px solid #E0DDD8;
+  transition: all .2s;
+}
+.scan-group-row.scanning { border-color: #7F77DD; background: #EEEDFE; }
+.scan-group-row.scanned-ok { border-color: #1D9E75; background: #E1F5EE; }
+.scan-group-row.scanned-wait { border-color: #E0DDD8; }
+.scan-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gc); flex-shrink: 0;
+}
+.scan-gname { font-weight: 700; font-size: 13px; min-width: 70px; }
+.scan-result { font-size: 13px; color: var(--muted); flex: 1; }
+.scan-result.filled { color: var(--text); font-weight: 600; }
+
+/* Caméra */
+.camera-container {
+  position: relative;
+  width: 100%; max-width: 340px;
+  margin: 0 auto 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 3px solid #7F77DD;
+  background: #000;
+}
+#camera-video { width: 100%; display: block; }
+#camera-canvas { display: none; }
+.camera-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.scan-frame {
+  width: 140px; height: 140px;
+  border: 3px solid rgba(127,119,221,.8);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1000px rgba(0,0,0,.3);
+}
+.scan-anim {
+  position: absolute;
+  width: 140px; height: 3px;
+  background: linear-gradient(90deg, transparent, #7F77DD, transparent);
+  animation: scan-line 1.5s ease-in-out infinite;
+  top: 50%; margin-top: -70px;
+}
+@keyframes scan-line {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(140px); opacity: .3; }
+}
+
+.camera-info {
+  text-align: center; font-size: 13px; color: var(--muted);
+  margin-bottom: 10px;
+}
+.camera-active-group {
+  text-align: center;
+  font-size: 1rem; font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* Overlay résultat */
+.result-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 100;
+  align-items: center; justify-content: center;
+}
+.result-overlay.show { display: flex; }
+.result-box {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 28px 32px;
+  text-align: center;
+  max-width: 420px; width: 90%;
+  border: 2px solid #E0DDD8;
+}
+.result-emoji { font-size: 3rem; margin-bottom: 10px; }
+.result-nature {
+  display: inline-block;
+  padding: 6px 18px; border-radius: 20px;
+  font-size: 1.1rem; font-weight: 700;
+  margin-bottom: 14px;
+}
+.result-groups { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 18px; }
+.result-group-pill {
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  color: #fff;
+}
+
+/* Fin */
+.podium { text-align: center; padding: 20px 0; }
+.podium-item { font-family: 'Baloo 2', cursive; margin: 6px 0; }
+
+/* Tabs */
+.tabs { display: flex; border-radius: 10px; overflow: hidden; border: 1.5px solid #D0CCC8; margin-bottom: 12px; }
+.tab { flex: 1; padding: 8px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; border: none; background: transparent; cursor: pointer; color: var(--muted); }
+.tab.active { background: #7F77DD; color: #fff; }
+
+textarea {
+  width: 100%; border: 1.5px solid #D0CCC8; border-radius: 10px;
+  padding: 10px; font-family: 'Nunito', sans-serif; font-size: 14px;
+  resize: none; min-height: 70px; background: var(--card);
+}
+textarea:focus { outline: none; border-color: #7F77DD; }
+
+.top-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.top-bar h2 { font-size: 1.2rem; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ SETUP ══════════════════ -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-hero">
+    <h1>🌿 Rituel grammaire</h1>
+    <p>Analyse de la nature des mots — groupes + caméra</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('lib')">Bibliothèque</button>
+    <button class="tab" onclick="switchTab('custom')">Phrase libre</button>
+  </div>
+
+  <div id="tab-lib">
+    <div class="card-box">
+      <h3>Choisir une phrase</h3>
+      <div class="phrase-library" id="lib-list"></div>
+    </div>
+  </div>
+  <div id="tab-custom" style="display:none">
+    <div class="card-box">
+      <h3>Saisir une phrase</h3>
+      <textarea id="custom-input" placeholder="Ex : Le petit chat buvait du lait chaud."></textarea>
+      <input id="custom-src" placeholder="Source (optionnel) — ex : Charlotte's Web" style="width:100%;border:1.5px solid #D0CCC8;border-radius:10px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;margin-top:8px;background:var(--card);color:var(--text)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <span style="font-size:12px;color:var(--muted)">Les natures seront détectées automatiquement ✨</span>
+        <button class="btn btn-primary btn-sm" onclick="useCustom()">Enregistrer et utiliser →</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="selected-block" style="display:none">
+    <div class="card-box">
+      <h3>Phrase sélectionnée</h3>
+      <div id="selected-text" style="font-size:1rem;font-weight:700;color:#7F77DD;margin-bottom:4px"></div>
+      <div id="selected-src" style="font-size:11px;color:var(--muted);margin-bottom:14px"></div>
+      <div id="natures-editor"></div>
+    </div>
+    <div style="text-align:right;margin-bottom:20px">
+      <button class="btn btn-primary" onclick="startGame()">Lancer le rituel ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ JEU ══════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="top-bar">
+    <h2 id="game-title" style="font-size:13px;color:var(--muted)"></h2>
+    <button class="btn btn-danger btn-sm" onclick="endGame()">Terminer</button>
+  </div>
+
+  <div class="game-phrase" id="game-phrase"></div>
+  <div class="groups-grid" id="groups-grid"></div>
+  <div class="track-section" id="track-section"></div>
+
+  <!-- Zone scan caméra -->
+  <div class="scan-zone">
+    <div class="current-word-display" id="current-word"></div>
+
+    <div class="camera-container" id="camera-container" style="display:none">
+      <video id="camera-video" autoplay playsinline muted></video>
+      <canvas id="camera-canvas"></canvas>
+      <div class="camera-overlay">
+        <div class="scan-frame"></div>
+        <div class="scan-anim"></div>
+      </div>
+    </div>
+
+    <div class="camera-info" id="camera-info"></div>
+    <div class="camera-active-group" id="camera-active-group"></div>
+
+    <div class="scan-status" id="scan-status"></div>
+
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+      <button class="btn" id="btn-camera" onclick="toggleCamera()">📷 Activer la caméra</button>
+      <button class="btn btn-primary" id="btn-validate" onclick="validateRound()" style="display:none">Valider ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ FIN ══════════════════ -->
+<div id="screen-end" class="screen">
+  <div class="top-bar">
+    <h2>🏆 Résultats</h2>
+    <button class="btn btn-sm" onclick="goSetup()">Nouveau rituel</button>
+  </div>
+  <div class="track-section" id="end-track"></div>
+  <div class="podium" id="podium"></div>
+  <div class="card-box" style="margin-top:14px">
+    <h3>Récapitulatif</h3>
+    <div id="recap" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- Overlay résultat -->
+<div class="result-overlay" id="result-overlay">
+  <div class="result-box">
+    <div class="result-emoji" id="res-emoji"></div>
+    <div><span class="result-nature" id="res-nature"></span></div>
+    <div class="result-groups" id="res-groups"></div>
+    <button class="btn btn-primary" id="btn-next" onclick="nextWord()">Mot suivant →</button>
+  </div>
+</div>
+
+<!-- Flash scan confirmation (groupe seulement, pas la nature) -->
+<div id="scan-flash" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;pointer-events:none">
+  <div id="scan-flash-box" style="padding:28px 48px;border-radius:24px;text-align:center;border:3px solid transparent">
+    <div id="scan-flash-text" style="font-family:'Baloo 2',cursive;font-size:2.8rem;font-weight:800;color:#fff"></div>
+    <div style="font-size:1.1rem;color:rgba(255,255,255,.85);margin-top:4px">✓ Réponse enregistrée</div>
+  </div>
+</div>
+
+<!-- Modal édition phrase -->
+<div id="modal-edit" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:20px;padding:24px;width:92%;max-width:460px;border:1.5px solid #E0DDD8">
+    <h3 style="font-family:'Baloo 2',cursive;font-size:1.2rem;margin-bottom:14px">✏️ Modifier la phrase</h3>
+    <input type="hidden" id="edit-idx">
+    <div style="margin-bottom:10px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;font-weight:700">Phrase</label>
+      <textarea id="edit-text" style="width:100%;border:1.5px solid #D0CCC8;border-radius:10px;padding:10px;font-family:'Nunito',sans-serif;font-size:14px;resize:none;min-height:70px"></textarea>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;font-weight:700">Source</label>
+      <input id="edit-src" style="width:100%;border:1.5px solid #D0CCC8;border-radius:10px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;padding:8px 12px;background:#F7F4EF;border-radius:8px">
+      💡 Les natures seront réanalysées automatiquement si vous modifiez le texte.
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-sm" onclick="closeEditModal()">Annuler</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEdit()">Enregistrer ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PHRASES = [
+  {text:"Le petit prince avait décidé de nettoyer ses volcans.", src:"Le Petit Prince – Saint-Exupéry",
+   natures:["DET","ADJ","NOM","VER","VER","PREP","VER","DET","NOM"]},
+  {text:"La rivière chantait doucement entre les pierres grises.", src:"Fantastique Maître Renard – Dahl",
+   natures:["DET","NOM","VER","ADV","PREP","DET","NOM","ADJ"]},
+  {text:"Personne ne savait vraiment qui vivait dans la vieille maison.", src:"Sorcières – Roald Dahl",
+   natures:["PRO","ADV","VER","ADV","PRO","VER","PREP","DET","ADJ","NOM"]},
+  {text:"Le loup regardait les trois petits cochons avec envie.", src:"Conte traditionnel",
+   natures:["DET","NOM","VER","DET","ADJ","ADJ","NOM","PREP","NOM"]},
+  {text:"Tous les enfants adorent les histoires merveilleuses.", src:"Matilda – Roald Dahl",
+   natures:["DET","DET","NOM","VER","DET","NOM","ADJ"]},
+  {text:"Un vieux renard malin traversa silencieusement la forêt sombre.", src:"Fables – La Fontaine",
+   natures:["DET","ADJ","NOM","ADJ","VER","ADV","DET","NOM","ADJ"]},
+];
+
+const NATURES_DEF = [
+  {code:"NOM",  label:"Nom",          color:"#1565C0", bg:"#E3F0FC"},
+  {code:"VER",  label:"Verbe",        color:"#C62828", bg:"#FCEAEA"},
+  {code:"ADJ",  label:"Adjectif",     color:"#2E7D32", bg:"#E6F4E7"},
+  {code:"DET",  label:"Déterminant",  color:"#8B4513", bg:"#F5EDE6"},
+  {code:"PRO",  label:"Pronom",       color:"#6A1B9A", bg:"#F3E8FB"},
+  {code:"ADV",  label:"Adverbe",      color:"#E65100", bg:"#FEF0E6"},
+  {code:"PREP", label:"Préposition",  color:"#212121", bg:"#F0F0F0"},
+  {code:"CON",  label:"Conjonction",  color:"#E91E63", bg:"#FCE4EC"},
+];
+
+// QR → code nature
+const QR_MAP = {
+  "DETERMINANT":"DET","NOM":"NOM","ADJECTIF":"ADJ","PRONOM":"PRO",
+  "VERBE":"VER","ADVERBE":"ADV","PREPOSITION":"PREP","CONJONCTION":"CON"
+};
+
+const GROUP_COLORS = ["#C62828","#1565C0","#2E7D32","#E65100","#6A1B9A"];
+const NB_GROUPS = 5;
+
+let state = {
+  phrase: null, words: [], wordNatures: [],
+  currentWord: 0,
+  scores: Array(NB_GROUPS).fill(0),
+  answers: Array(NB_GROUPS).fill(null), // code nature par groupe
+  history: [],
+  maxScore: 0,
+  cameraActive: false,
+  stream: null,
+  scanInterval: null,
+  scanningGroup: -1, // quel groupe est en attente de scan (-1 = tous ok ou idle)
+};
+
+// ── SETUP ──
+function switchTab(id) {
+  ['lib','custom'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? 'block' : 'none';
+    document.querySelectorAll('.tab')[t==='lib'?0:1].classList.toggle('active', t===id);
+  });
+}
+
+// ── BIBLIOTHÈQUE PERSISTANTE (tout dans localStorage) ──
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem('gram_phrases') || 'null'); }
+  catch(e) { return null; }
+}
+function savePhrases(arr) {
+  localStorage.setItem('gram_phrases', JSON.stringify(arr));
+}
+
+function getAllPhrases() {
+  let saved = loadSaved();
+  if (!saved) {
+    // Premier lancement : on copie les phrases intégrées dans le stock
+    saved = PHRASES.map(p => ({ ...p, custom: false }));
+    savePhrases(saved);
+  }
+  return saved;
+}
+
+function addToLibrary(text, src, natures) {
+  const all = getAllPhrases();
+  if (all.some(p => p.text === text)) return;
+  all.unshift({ text, src: src || 'Phrase personnelle', natures, custom: true });
+  savePhrases(all);
+}
+
+function deletePhrase(idx) {
+  if (!confirm('Supprimer cette phrase de la bibliothèque ?')) return;
+  const all = getAllPhrases();
+  all.splice(idx, 1);
+  savePhrases(all);
+  initLib();
+}
+
+function openEditModal(idx) {
+  const all = getAllPhrases();
+  const p = all[idx];
+  document.getElementById('edit-idx').value = idx;
+  document.getElementById('edit-text').value = p.text;
+  document.getElementById('edit-src').value = p.src || '';
+  document.getElementById('modal-edit').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('modal-edit').style.display = 'none';
+}
+
+// Fermer modal en cliquant sur le fond
+document.getElementById('modal-edit').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+function saveEdit() {
+  const idx = parseInt(document.getElementById('edit-idx').value);
+  const newText = document.getElementById('edit-text').value.trim();
+  const newSrc  = document.getElementById('edit-src').value.trim() || 'Phrase personnelle';
+  if (!newText) return;
+  const all = getAllPhrases();
+  const oldText = all[idx].text;
+  const words = newText.replace(/[.,!?;:«»]/g, '').split(/\s+/).filter(Boolean);
+  const natures = (newText !== oldText)
+    ? analyseNatures(newText, words)
+    : (all[idx].natures || analyseNatures(newText, words));
+  all[idx] = { text: newText, src: newSrc, natures, custom: all[idx].custom };
+  savePhrases(all);
+  closeEditModal();
+  initLib();
+  // Si c'est la phrase actuellement sélectionnée, recharger l'éditeur de natures
+  if (state.phrase === oldText) {
+    loadPhrase(newText, newSrc, natures);
+  }
+}
+
+function initLib() {
+  const el = document.getElementById('lib-list');
+  const all = getAllPhrases();
+
+  if (all.length === 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">Aucune phrase enregistrée.</div>';
+    return;
+  }
+
+  el.innerHTML = all.map((p, i) => `
+    <div class="lib-item" id="lib-item-${i}" style="position:relative;padding-right:64px">
+      <div onclick="selectLibPhrase(${i})">
+        <div style="font-size:14px;font-weight:600">${p.text}</div>
+        <div class="lib-src" style="display:flex;align-items:center;gap:6px">
+          ${p.custom ? '<span style="background:#EEEDFE;color:#534AB7;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Perso</span>' : '<span style="background:#E1F5EE;color:#085041;padding:1px 7px;border-radius:20px;font-size:10px;font-weight:700">Intégrée</span>'}
+          ${p.src}
+        </div>
+      </div>
+      <div style="position:absolute;top:50%;right:8px;transform:translateY(-50%);display:flex;gap:4px">
+        <button onclick="event.stopPropagation();openEditModal(${i})"
+          style="background:none;border:1px solid #D0CCC8;border-radius:6px;cursor:pointer;font-size:13px;padding:3px 7px;color:var(--muted)" title="Modifier">✏️</button>
+        <button onclick="event.stopPropagation();deletePhrase(${i})"
+          style="background:none;border:1px solid #D0CCC8;border-radius:6px;cursor:pointer;font-size:13px;padding:3px 7px;color:var(--muted)" title="Supprimer">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function selectLibPhrase(i) {
+  document.querySelectorAll('.lib-item').forEach((el,j) => el.classList.toggle('selected', j===i));
+  const p = getAllPhrases()[i];
+  loadPhrase(p.text, p.src, p.natures || null);
+}
+
+function selectPhrase(i) { selectLibPhrase(i); }
+
+function useCustom() {
+  const txt = document.getElementById('custom-input').value.trim();
+  if (!txt) return;
+  const src = document.getElementById('custom-src').value.trim() || 'Phrase personnelle';
+
+  // Analyse instantanée + enregistrement immédiat avec les bonnes natures
+  const words = txt.replace(/[.,!?;:«»]/g, '').split(/\s+/).filter(Boolean);
+  const natures = analyseNatures(txt, words);
+  addToLibrary(txt, src, natures);
+  initLib();
+  document.getElementById('custom-input').value = '';
+  document.getElementById('custom-src').value = '';
+  switchTab('lib');
+
+  loadPhrase(txt, src, natures);
+}
+
+function loadPhrase(text, src, natures) {
+  const words = text.replace(/[.,!?;:«»]/g, '').split(/\s+/).filter(Boolean);
+  state.phrase = text;
+  state.words = words;
+
+  if (natures) {
+    state.wordNatures = [...natures];
+  } else {
+    // Analyse grammaticale embarquée — instantanée
+    state.wordNatures = analyseNatures(text, words);
+    // Sauvegarder les natures détectées dans la bibliothèque perso
+    const saved = loadSaved();
+    const idx = saved.findIndex(p => p.text === text);
+    if (idx !== -1) { saved[idx].natures = [...state.wordNatures]; savePhrases(saved); }
+  }
+
+  document.getElementById('selected-text').textContent = text;
+  document.getElementById('selected-src').textContent = src;
+  document.getElementById('selected-block').style.display = 'block';
+  renderNaturesEditor();
+}
+
+function renderNaturesLoading() {
+  const el = document.getElementById('natures-editor');
+  el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;padding:8px 0">
+    <div style="width:18px;height:18px;border:2px solid #7F77DD;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>
+    Analyse grammaticale en cours…
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+}
+
+// ── MOTEUR GRAMMATICAL EMBARQUÉ (100% JS, hors ligne) ──
+const GRAM = {
+
+  DET: new Set([
+    "le","la","les","l","un","une","des","du","au","aux",
+    "mon","ma","mes","ton","ta","tes","son","sa","ses",
+    "notre","nos","votre","vos","leur","leurs",
+    "ce","cet","cette","ces","quel","quelle","quels","quelles",
+    "chaque","plusieurs","quelques","tout","toute","tous","toutes",
+    "aucun","aucune","nul","nulle","même","mêmes",
+  ]),
+
+  PRO: new Set([
+    "je","j","tu","il","elle","nous","vous","ils","elles",
+    "me","m","te","t","se","s","lui","y","en",
+    "moi","toi","soi","eux",
+    "qui","que","quoi","dont","où",
+    "on","personne","rien","chacun","chacune",
+    "celui","celle","ceux","celles","lequel","laquelle","lesquels","lesquelles",
+  ]),
+
+  PREP: new Set([
+    "à","de","du","au","aux","en","dans","sur","sous","par","pour",
+    "avec","sans","entre","vers","chez","contre","après","avant",
+    "depuis","pendant","jusqu","jusque","lors","dès","parmi",
+    "derrière","devant","dessus","dessous","autour","près","loin",
+    "selon","malgré","sauf","hormis","outre","via",
+  ]),
+
+  CON: new Set([
+    "et","ou","mais","donc","or","ni","car","que","quand","comme",
+    "si","parce","puisque","lorsque","bien","alors","ainsi","cependant",
+    "néanmoins","toutefois","pourtant","sinon","soit","voire",
+    "pendant","avant","après","tandis","quoique","afin","pour",
+  ]),
+
+  ADV: new Set([
+    "très","trop","peu","plus","moins","aussi","si","assez","fort",
+    "bien","mal","mieux","vite","lentement","doucement","souvent",
+    "toujours","jamais","parfois","encore","déjà","bientôt","maintenant",
+    "ici","là","ailleurs","partout","nulle","dedans","dehors","dessus","dessous",
+    "vraiment","seulement","même","presque","environ","plutôt","davantage",
+    "non","ne","pas","plus","jamais","rien","guère","point","que",
+    "comment","pourquoi","combien","quand","où",
+    "ensemble","tard","tôt","hier","demain","aujourd",
+    "silencieusement","rapidement","calmement","joyeusement","tristement",
+    "facilement","difficilement","profondément","entièrement","absolument",
+  ]),
+
+  // Verbes auxiliaires et modaux fréquents (formes conjuguées)
+  VER_EXACT: new Set([
+    // être
+    "est","sont","suis","es","sommes","êtes","était","étaient","étais","étiez","étions",
+    "sera","seront","serai","seras","serez","serons","serait","seraient",
+    "fut","furent","fût","soit","soient","sois","soyez","soyons",
+    // avoir
+    "a","ont","ai","as","avons","avez","avait","avaient","avais","aviez","avions",
+    "aura","auront","aurai","auras","aurez","aurons","aurait","auraient",
+    "eut","eurent","ait","aient","aie","ayez","ayons",
+    // aller
+    "va","vont","vais","vas","allons","allez","allait","allaient",
+    "ira","iront","irai","iras","irez","irons",
+    // faire
+    "fait","font","fais","faisons","faites","faisait","faisaient",
+    "fera","feront","ferai","feras","ferez","ferons","ferait","feraient",
+    // vouloir
+    "veut","veulent","veux","voulons","voulez","voulait","voulaient",
+    "voudra","voudront","voudrait","voudraient","veuille","veuillent",
+    // pouvoir
+    "peut","peuvent","peux","pouvons","pouvez","pouvait","pouvaient",
+    "pourra","pourront","pourrait","pourraient",
+    // devoir
+    "doit","doivent","dois","devons","devez","devait","devaient",
+    "devra","devront","devrait","devraient",
+    // savoir
+    "sait","savent","sais","savons","savez","savait","savaient",
+    // venir
+    "vient","viennent","viens","venons","venez","venait","venaient",
+    // dire
+    "dit","disent","dis","disons","dites","disait","disaient",
+    // voir
+    "voit","voient","vois","voyons","voyez","voyait","voyaient",
+    // prendre
+    "prend","prennent","prends","prenons","prenez","prenait","prenaient",
+    // mettre
+    "met","mettent","mets","mettons","mettez","mettait","mettaient",
+    // partir
+    "part","partent","pars","partons","partez","partait","partaient",
+    // donner
+    "donne","donnent","donnes","donnons","donnez","donnait","donnaient",
+    // décider
+    "décide","décident","décides","décidons","décidez","décidait","décidaient",
+    "décida","décidèrent",
+    // regarder
+    "regarde","regardent","regardes","regardons","regardez","regardait","regardaient",
+    // chanter
+    "chante","chantent","chantes","chantons","chantez","chantait","chantaient",
+    "chantait",
+    // traverser
+    "traverse","traversent","traverses","traversons","traversez","traversait","traversaient",
+    "traversa","traversèrent",
+    // aimer
+    "aime","aiment","aimes","aimons","aimez","aimait","aimaient",
+    // adorer
+    "adore","adorent","adores","adorons","adorez","adorait","adoraient",
+    // tisser
+    "tisse","tissent","tisses","tissons","tissez","tissait","tissaient",
+    "tissait",
+    // participes passés courants
+    "eu","été","fait","dit","pris","mis","parti","venu","allé","allée","allés","allées",
+    "décidé","regardé","chanté","traversé","aimé","adoré",
+    // infinitifs courants
+    "être","avoir","faire","aller","venir","voir","savoir","pouvoir","vouloir","devoir",
+    "dire","prendre","mettre","partir","donner","aimer","adorer","regarder","chanter",
+    "nettoyer","tisser","traverser","décider","boire","manger","dormir","courir",
+    "lire","écrire","parler","jouer","finir","grandir","ouvrir","sortir",
+  ]),
+
+  // Adjectifs courants (liste étendue)
+  ADJ_EXACT: new Set([
+    "petit","petite","petits","petites","grand","grande","grands","grandes",
+    "gros","grosse","gros","grosses","vieux","vieille","vieux","vieilles",
+    "jeune","jeunes","beau","belle","beaux","belles","joli","jolie","jolis","jolies",
+    "bon","bonne","bons","bonnes","mauvais","mauvaise","mauvaises",
+    "long","longue","longs","longues","court","courte","courts","courtes",
+    "fort","forte","forts","fortes","faible","faibles",
+    "rapide","rapides","lent","lente","lents","lentes",
+    "noir","noire","noirs","noires","blanc","blanche","blancs","blanches",
+    "rouge","rouges","bleu","bleue","bleus","bleues","vert","verte","verts","vertes",
+    "jaune","jaunes","rose","roses","gris","grise","gris","grises",
+    "brun","brune","bruns","brunes","doré","dorée","dorés","dorées",
+    "chaud","chaude","chauds","chaudes","froid","froide","froids","froides",
+    "doux","douce","doux","douces","dur","dure","durs","dures",
+    "heureux","heureuse","heureux","heureuses","triste","tristes",
+    "content","contente","contents","contentes",
+    "malin","maligne","malins","malignes","sage","sages",
+    "gentil","gentille","gentils","gentilles","méchant","méchante","méchants","méchantes",
+    "beau","belle","beaux","belles","laid","laide","laids","laides",
+    "merveilleux","merveilleuse","merveilleux","merveilleuses",
+    "magnifique","magnifiques","superbe","superbes","terrible","terribles",
+    "fantastique","fantastiques","extraordinaire","extraordinaires",
+    "ancien","ancienne","anciens","anciennes","nouveau","nouvelle","nouveaux","nouvelles",
+    "premier","première","premiers","premières","dernier","dernière","derniers","dernières",
+    "seul","seule","seuls","seules","même","mêmes","autre","autres",
+    "tout","toute","tous","toutes","chaque",
+    "sombre","sombres","clair","claire","clairs","claires","lumineux","lumineuse",
+    "silencieux","silencieuse","silencieux","silencieuses","bruyant","bruyante",
+    "mystérieux","mystérieuse","mystérieux","mystérieuses",
+    "courageux","courageuse","courageux","courageuses",
+    "célèbre","célèbres","important","importante","importants","importantes",
+    "différent","différente","différents","différentes","pareil","pareille","pareils","pareilles",
+    "plein","pleine","pleins","pleines","vide","vides",
+    "chaud","chaude","propre","propres","sale","sales",
+    "vivant","vivante","vivants","vivantes","mort","morte","morts","mortes",
+    "trois","quatre","cinq","six","sept","huit","neuf","dix","vingt","cent",
+    "deux","troisième","deuxième",
+  ]),
+};
+
+// Terminaisons verbales (infinitif, imparfait, futur, passé simple, participe)
+const VER_ENDINGS = [
+  /er$/, /ir$/, /re$/, /oir$/,           // infinitifs
+  /ait$/, /aient$/, /ions$/, /iez$/,      // imparfait
+  /era$/, /eront$/, /erai$/, /eras$/,     // futur
+  /era$/, /iront$/, /irai$/, /iras$/,
+  /a$(?!.*[aeiou]a)/, /èrent$/, /âmes$/, // passé simple (prudent)
+  /ant$/, /ant$/,                         // participe présent
+  /ons$/, /ez$/, /ent$/,                 // présent 1p/2p/3p
+];
+
+// Terminaisons adjectivales
+const ADJ_ENDINGS = [
+  /eux$/, /euse$/, /euses$/, /eux$/,
+  /able$/, /ibles$/, /ible$/,
+  /ique$/, /iques$/,
+  /ain$/, /aine$/, /ains$/, /aines$/,
+  /ien$/, /ienne$/, /iens$/, /iennes$/,
+  /if$/, /ive$/, /ifs$/, /ives$/,
+  /al$/, /ale$/, /als$/, /ales$/,
+  /el$/, /elle$/, /els$/, /elles$/,
+  /uel$/, /uelle$/,
+  /oux$/, /ouce$/,
+];
+
+function analyseNatures(text, words) {
+  // Synchrone désormais — retourne directement le tableau
+  return words.map((mot, i) => {
+    const m = mot.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // sans accents pour matching
+      .replace(/^(l|d|j|m|t|s|n|c|qu)$/, w => w); // apostrophes déjà nettoyées
+
+    const mAccent = mot.toLowerCase(); // avec accents pour les sets accentués
+
+    // 1. Déterminant
+    if (GRAM.DET.has(mAccent) || GRAM.DET.has(m)) return 'DET';
+
+    // 2. Pronom
+    if (GRAM.PRO.has(mAccent) || GRAM.PRO.has(m)) return 'PRO';
+
+    // 3. Préposition
+    if (GRAM.PREP.has(mAccent) || GRAM.PREP.has(m)) return 'PREP';
+
+    // 4. Conjonction
+    if (GRAM.CON.has(mAccent) || GRAM.CON.has(m)) return 'CON';
+
+    // 5. Adverbe (liste + terminaison -ment)
+    if (GRAM.ADV.has(mAccent) || GRAM.ADV.has(m)) return 'ADV';
+    if (/ment$/.test(mAccent)) return 'ADV';
+
+    // 6. Verbe exact (formes conjuguées connues)
+    if (GRAM.VER_EXACT.has(mAccent) || GRAM.VER_EXACT.has(m)) return 'VER';
+
+    // 7. Adjectif exact
+    if (GRAM.ADJ_EXACT.has(mAccent) || GRAM.ADJ_EXACT.has(m)) return 'ADJ';
+
+    // 8. Terminaisons verbales — contexte : après DET/PRO/NOM à gauche = moins probable
+    const prevNature = i > 0 ? null : null; // simplifié
+    const matchesVerb = VER_ENDINGS.some(re => re.test(mAccent));
+    const matchesAdj  = ADJ_ENDINGS.some(re => re.test(mAccent));
+
+    // Participes en -é/-ée/-és/-ées après auxiliaire : VER
+    if (/[eé]e?s?$/.test(mAccent) && i > 0) {
+      // probable participe passé
+      if (matchesVerb && !matchesAdj) return 'VER';
+    }
+
+    if (matchesVerb && !matchesAdj) return 'VER';
+    if (matchesAdj  && !matchesVerb) return 'ADJ';
+
+    // 9. Majuscule en début de phrase → NOM propre probable si pas pos 0
+    if (i > 0 && mot[0] === mot[0].toUpperCase()) return 'NOM';
+
+    // 10. Par défaut : NOM
+    return 'NOM';
+  });
+}
+
+function renderNaturesEditor() {
+  const el = document.getElementById('natures-editor');
+  el.innerHTML = '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Vérifier les natures :</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+    + state.words.map((w,i) => {
+        const n = NATURES_DEF.find(x => x.code === state.wordNatures[i]) || NATURES_DEF[0];
+        return `<div style="display:flex;align-items:center;gap:4px;background:${n.bg};border-radius:20px;padding:4px 10px;border:1.5px solid ${n.color}">
+          <span style="font-weight:700;font-size:13px">${w}</span>
+          <select class="nature-select" style="background:transparent;border:none;color:${n.color};font-weight:700" onchange="state.wordNatures[${i}]=this.value;renderNaturesEditor()">
+            ${NATURES_DEF.map(x => `<option value="${x.code}" ${x.code===state.wordNatures[i]?'selected':''}>${x.label}</option>`).join('')}
+          </select>
+        </div>`;
+      }).join('')
+    + '</div>';
+}
+
+// ── GAME START ──
+function startGame() {
+  if (!state.phrase) return;
+  // Mettre à jour les natures dans la bibliothèque si c'est une phrase perso
+  const saved = loadSaved();
+  const idx = saved.findIndex(p => p.text === state.phrase);
+  if (idx !== -1) {
+    saved[idx].natures = [...state.wordNatures];
+    savePhrases(saved);
+  }
+  state.scores = Array(NB_GROUPS).fill(0);
+  state.answers = Array(NB_GROUPS).fill(null);
+  state.currentWord = 0;
+  state.history = [];
+  state.maxScore = state.words.length;
+  showScreen('game');
+  renderGamePhrase();
+  renderGroups();
+  renderTrack('track-section');
+  loadWord(0);
+}
+
+function renderGamePhrase() {
+  document.getElementById('game-title').textContent = state.phrase;
+  const el = document.getElementById('game-phrase');
+  el.innerHTML = state.words.map((w,i) =>
+    `<span class="word-chip" id="chip-${i}">${w}</span>`
+  ).join(' ');
+}
+
+function renderGroups() {
+  const el = document.getElementById('groups-grid');
+  el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => `
+    <div class="group-card" style="--gc:${GROUP_COLORS[i]}">
+      <div class="gname">Groupe ${i+1}</div>
+      <div class="gscore" id="gscore-${i}">0</div>
+      <div class="ganswer" id="ganswer-${i}">—</div>
+    </div>`).join('');
+}
+
+function renderTrack(containerId) {
+  const el = document.getElementById(containerId);
+  const max = Math.max(state.maxScore, 1);
+  el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
+    const pct = Math.min(100, (state.scores[i]/max)*100);
+    const leftPct = Math.min(96, pct);
+    return `<div class="track-row">
+      <div class="track-label" style="color:${GROUP_COLORS[i]}">G${i+1}</div>
+      <div class="track-bar">
+        <div class="track-bg"></div>
+        <div class="track-fill" id="tfill-${containerId}-${i}"
+             style="width:${pct}%;background:${GROUP_COLORS[i]}"></div>
+        <div class="track-worm" id="tworm-${containerId}-${i}"
+             style="left:calc(${leftPct}% + 13px)">🐛</div>
+      </div>
+      <div class="track-pts" style="color:${GROUP_COLORS[i]}" id="tpts-${containerId}-${i}">${state.scores[i]}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateTrack(containerId) {
+  const max = Math.max(state.maxScore, 1);
+  for (let i = 0; i < NB_GROUPS; i++) {
+    const pct = Math.min(100, (state.scores[i]/max)*100);
+    const leftPct = Math.min(96, pct);
+    const fill = document.getElementById(`tfill-${containerId}-${i}`);
+    const worm = document.getElementById(`tworm-${containerId}-${i}`);
+    const pts  = document.getElementById(`tpts-${containerId}-${i}`);
+    if (fill) fill.style.width = pct + '%';
+    if (worm) worm.style.left = `calc(${leftPct}% + 13px)`;
+    if (pts)  pts.textContent = state.scores[i];
+  }
+}
+
+function loadWord(idx) {
+  if (idx >= state.words.length) { endGame(); return; }
+  state.currentWord = idx;
+  state.answers = Array(NB_GROUPS).fill(null);
+
+  // Chips
+  document.querySelectorAll('.word-chip').forEach((c,i) => {
+    c.className = 'word-chip' + (i < idx ? ' done-ok' : '') + (i === idx ? ' current' : '');
+  });
+
+  document.getElementById('current-word').textContent = state.words[idx];
+  document.getElementById('result-overlay').classList.remove('show');
+  document.getElementById('btn-validate').style.display = 'none';
+
+  renderScanStatus();
+}
+
+function renderScanStatus() {
+  const el = document.getElementById('scan-status');
+  el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
+    const ans = state.answers[i];
+    const n = ans ? NATURES_DEF.find(x => x.code === ans) : null;
+    return `<div class="scan-group-row ${ans ? 'scanned-ok' : ''}" id="sgrow-${i}" style="--gc:${GROUP_COLORS[i]}">
+      <div class="scan-dot"></div>
+      <div class="scan-gname" style="color:${GROUP_COLORS[i]}">Groupe ${i+1}</div>
+      <div class="scan-result ${ans ? 'filled' : ''}" id="sgres-${i}">
+        ${ans ? `<span style="background:${n.bg};color:${n.color};padding:2px 10px;border-radius:20px;font-size:12px">${n.label}</span>` : 'en attente...'}
+      </div>
+      ${ans ? `<span style="font-size:16px">✓</span>` : ''}
+    </div>`;
+  }).join('');
+  // Afficher valider si tous répondus
+  const allDone = state.answers.every(a => a !== null);
+  document.getElementById('btn-validate').style.display = allDone ? 'inline-block' : 'none';
+}
+
+// ── CAMÉRA ──
+async function toggleCamera() {
+  if (state.cameraActive) {
+    stopCamera();
+  } else {
+    await startCamera();
+  }
+}
+
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: {ideal:640}, height: {ideal:480} }
+    });
+    state.stream = stream;
+    state.cameraActive = true;
+    const video = document.getElementById('camera-video');
+    video.srcObject = stream;
+    document.getElementById('camera-container').style.display = 'block';
+    document.getElementById('btn-camera').textContent = '📷 Arrêter la caméra';
+    document.getElementById('camera-info').textContent = 'Présentez une carte devant la caméra';
+
+    // Scan loop
+    state.scanInterval = setInterval(scanFrame, 200);
+  } catch(e) {
+    document.getElementById('camera-info').textContent = '⚠ Caméra non disponible — utilisez les boutons ci-dessous';
+    showManualButtons();
+  }
+}
+
+function stopCamera() {
+  if (state.stream) {
+    state.stream.getTracks().forEach(t => t.stop());
+    state.stream = null;
+  }
+  if (state.scanInterval) { clearInterval(state.scanInterval); state.scanInterval = null; }
+  state.cameraActive = false;
+  document.getElementById('camera-container').style.display = 'none';
+  document.getElementById('btn-camera').textContent = '📷 Activer la caméra';
+  document.getElementById('camera-info').textContent = '';
+}
+
+function scanFrame() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  if (!video.videoWidth) return;
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: 'dontInvert'
+  });
+
+  if (code) {
+    handleQR(code.data);
+  }
+}
+
+function handleQR(data) {
+  const match = data.match(/^G(\d):(.+)$/);
+  if (!match) return;
+  const groupIdx = parseInt(match[1]) - 1;
+  const natureKey = match[2].trim();
+  const natureCode = QR_MAP[natureKey];
+
+  if (groupIdx < 0 || groupIdx >= NB_GROUPS) return;
+  if (!natureCode) return;
+  if (state.answers[groupIdx] !== null) return; // déjà scanné
+
+  state.answers[groupIdx] = natureCode;
+
+  const row = document.getElementById(`sgrow-${groupIdx}`);
+  if (row) row.classList.add('scanned-ok');
+  renderScanStatus();
+
+  // Flash plein écran : groupe seulement, pas la nature
+  showScanFlash(groupIdx);
+
+  // Bip
+  beep(groupIdx);
+  updateCameraInfo();
+}
+
+function showScanFlash(groupIdx) {
+  const color = GROUP_COLORS[groupIdx];
+  const flash = document.getElementById('scan-flash');
+  const box   = document.getElementById('scan-flash-box');
+  const txt   = document.getElementById('scan-flash-text');
+
+  txt.textContent = `Groupe ${groupIdx + 1} ✓`;
+  box.style.background = color;
+  box.style.borderColor = color;
+  flash.style.display = 'flex';
+  flash.style.background = color + '33'; // fond légèrement coloré
+
+  // Disparaît après 1.2s
+  clearTimeout(window._flashTimer);
+  window._flashTimer = setTimeout(() => {
+    flash.style.display = 'none';
+  }, 1200);
+}
+
+function updateCameraInfo() {
+  const remaining = state.answers.filter(a => a === null).length;
+  if (remaining === 0) {
+    document.getElementById('camera-info').textContent = '✅ Tous les groupes ont répondu !';
+  } else {
+    const next = state.answers.findIndex(a => a === null);
+    document.getElementById('camera-info').textContent =
+      `Groupe ${next+1} en attente... (${remaining} restant${remaining>1?'s':''})`;
+  }
+}
+
+function beep(groupIdx) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const freqs = [523, 659, 784, 880, 988]; // do ré mi fa sol
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freqs[groupIdx];
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+  } catch(e) {}
+}
+
+function showManualButtons() {
+  // Fallback : boutons manuels si pas de caméra
+  const el = document.getElementById('scan-status');
+  // Les boutons nature apparaissent sur chaque ligne de groupe
+  el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
+    const ans = state.answers[i];
+    const n = ans ? NATURES_DEF.find(x => x.code === ans) : null;
+    return `<div class="scan-group-row ${ans ? 'scanned-ok' : ''}" style="--gc:${GROUP_COLORS[i]};flex-wrap:wrap">
+      <div class="scan-dot"></div>
+      <div class="scan-gname" style="color:${GROUP_COLORS[i]}">Groupe ${i+1}</div>
+      ${ans
+        ? `<span style="background:${n.bg};color:${n.color};padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700">${n.label} ✓</span>`
+        : `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;width:100%">
+            ${NATURES_DEF.map(nd => `<button onclick="setManualAnswer(${i},'${nd.code}')"
+              style="background:${nd.bg};color:${nd.color};border:1.5px solid ${nd.color};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer">
+              ${nd.label}</button>`).join('')}
+           </div>`
+      }
+    </div>`;
+  }).join('');
+  const allDone = state.answers.every(a => a !== null);
+  document.getElementById('btn-validate').style.display = allDone ? 'inline-block' : 'none';
+}
+
+function setManualAnswer(groupIdx, code) {
+  state.answers[groupIdx] = code;
+  showManualButtons();
+}
+
+// ── VALIDATION ──
+function validateRound() {
+  const correct = state.wordNatures[state.currentWord];
+  const correctN = NATURES_DEF.find(x => x.code === correct) || NATURES_DEF[0];
+
+  const results = state.answers.map((ans, i) => {
+    const ok = ans === correct;
+    if (ok) state.scores[i]++;
+    return { group: i, ans, ok };
+  });
+
+  state.history.push({ word: state.words[state.currentWord], correct, results: [...results] });
+
+  // Mise à jour scores + chenilles
+  for (let i = 0; i < NB_GROUPS; i++) {
+    const sc = document.getElementById(`gscore-${i}`);
+    if (sc) sc.textContent = state.scores[i];
+    const an = document.getElementById(`ganswer-${i}`);
+    if (an) {
+      const n = NATURES_DEF.find(x => x.code === state.answers[i]);
+      an.textContent = n ? n.label : '?';
+      an.style.color = results[i].ok ? '#1D9E75' : '#C62828';
+    }
+  }
+  updateTrack('track-section');
+
+  // Overlay résultat
+  const allOk = results.every(r => r.ok);
+  const noneOk = results.every(r => !r.ok);
+  document.getElementById('res-emoji').textContent = allOk ? '🎉' : noneOk ? '🤔' : '👍';
+  document.getElementById('res-nature').textContent = correctN.label;
+  document.getElementById('res-nature').style.background = correctN.bg;
+  document.getElementById('res-nature').style.color = correctN.color;
+
+  const groupsEl = document.getElementById('res-groups');
+  groupsEl.innerHTML = results.map(r => {
+    const n = NATURES_DEF.find(x => x.code === r.ans);
+    return `<span class="result-group-pill" style="background:${GROUP_COLORS[r.group]}">
+      G${r.group+1} : ${n ? n.label : '?'} ${r.ok ? '✓' : '✗'}
+    </span>`;
+  }).join('');
+
+  const btnNext = document.getElementById('btn-next');
+  btnNext.textContent = state.currentWord >= state.words.length - 1 ? '🏆 Résultats' : 'Mot suivant →';
+
+  document.getElementById('result-overlay').classList.add('show');
+}
+
+function nextWord() {
+  const next = state.currentWord + 1;
+  if (next >= state.words.length) { endGame(); return; }
+  loadWord(next);
+}
+
+// ── FIN ──
+function endGame() {
+  stopCamera();
+  showScreen('end');
+  renderTrack('end-track');
+
+  // Podium
+  const sorted = [...Array(NB_GROUPS).keys()].sort((a,b) => state.scores[b] - state.scores[a]);
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const sizes  = ['1.6rem','1.3rem','1.1rem','1rem','1rem'];
+  document.getElementById('podium').innerHTML = sorted.map((i, rank) =>
+    `<div class="podium-item" style="font-size:${sizes[rank]};color:${GROUP_COLORS[i]}">
+      ${medals[rank]} Groupe ${i+1} — ${state.scores[i]} pt${state.scores[i]>1?'s':''}
+    </div>`
+  ).join('');
+
+  // Récap
+  document.getElementById('recap').innerHTML = state.history.map(h => {
+    const cn = NATURES_DEF.find(x => x.code === h.correct) || NATURES_DEF[0];
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#F7F4EF;border-radius:10px;font-size:13px">
+      <span style="font-weight:700;min-width:90px">${h.word}</span>
+      <span style="background:${cn.bg};color:${cn.color};padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700">${cn.label}</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${h.results.map(r => `<span style="background:${r.ok?'#E1F5EE':'#FCEBEB'};color:${r.ok?'#085041':'#7A1515'};padding:2px 8px;border-radius:20px;font-size:11px">G${r.group+1} ${r.ok?'✓':'✗'}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function goSetup() { showScreen('setup'); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+initLib();
+</script>
+</body>
+</html>
