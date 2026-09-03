@@ -1082,28 +1082,30 @@ function stopCamera() {
 function scanFrame() {
   const video = document.getElementById('camera-video');
   const canvas = document.getElementById('camera-canvas');
-  if (!video.videoWidth) return;
+  if (!video.videoWidth) {
+    document.getElementById('camera-info').textContent = '⚠ Pas de flux vidéo';
+    return;
+  }
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
 
-  // Retourner horizontalement pour corriger le miroir
   ctx.save();
   ctx.scale(-1, 1);
   ctx.drawImage(video, -canvas.width, 0);
   ctx.restore();
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  document.getElementById('camera-info').textContent = `Flux OK : ${canvas.width}x${canvas.height}px — scan en cours...`;
+
   const code = jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: 'dontInvert'
+    inversionAttempts: 'attemptBoth'
   });
 
   if (code) {
     document.getElementById('camera-info').textContent = '🔍 Lu : ' + code.data;
     handleQR(code.data);
-  } else {
-    document.getElementById('camera-info').textContent = 'Scan en cours...';
   }
 }
 
