@@ -1100,7 +1100,10 @@ function scanFrame() {
   });
 
   if (code) {
+    document.getElementById('camera-info').textContent = '🔍 Lu : ' + code.data;
     handleQR(code.data);
+  } else {
+    document.getElementById('camera-info').textContent = 'Scan en cours...';
   }
 }
 
