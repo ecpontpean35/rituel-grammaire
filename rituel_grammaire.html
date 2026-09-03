@@ -1101,11 +1101,7 @@ function scanFrame() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
-
-  ctx.save();
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, -canvas.width, 0);
-  ctx.restore();
+  ctx.drawImage(video, 0, 0);
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   document.getElementById('camera-info').textContent = `Flux OK : ${canvas.width}x${canvas.height}px — scan en cours...`;
