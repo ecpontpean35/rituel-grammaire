@@ -1059,7 +1059,18 @@ async function startCamera() {
     document.getElementById('btn-camera').textContent = '📷 Arrêter la caméra';
     document.getElementById('camera-info').textContent = 'Présentez une carte devant la caméra';
 
-    // Scan loop
+    video.onloadedmetadata = () => {
+      document.getElementById('camera-info').textContent = `Caméra prête : ${video.videoWidth}x${video.videoHeight}px`;
+    };
+    video.oncanplay = () => {
+      document.getElementById('camera-info').textContent = `Flux actif : ${video.videoWidth}x${video.videoHeight}px — présentez une carte`;
+    };
+    // Scan loop — démarre seulement quand la vidéo joue
+    video.addEventListener('playing', () => {
+      if (state.scanInterval) clearInterval(state.scanInterval);
+      state.scanInterval = setInterval(scanFrame, 200);
+    }, { once: false });
+    // Fallback si playing ne se déclenche pas
     state.scanInterval = setInterval(scanFrame, 200);
   } catch(e) {
     document.getElementById('camera-info').textContent = '⚠ Caméra non disponible — utilisez les boutons ci-dessous';
