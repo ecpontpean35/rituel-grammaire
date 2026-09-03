@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Verso QR codes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: white; }
+
+  .page {
+    width: 210mm; min-height: 297mm;
+    padding: 8mm 8mm 4mm;
+    page-break-after: always;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: 4mm;
+  }
+
+  .page-header {
+    grid-column: 1 / -1;
+    font-size: 8px; color: #AAA;
+    text-align: center; margin-bottom: 1mm;
+  }
+
+  .card {
+    border: 3px solid var(--c);
+    border-radius: 8mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5mm;
+    background: white;
+    position: relative;
+    min-height: 120mm;
+  }
+
+  .badge {
+    position: absolute; top: 4mm; left: 4mm;
+    width: 11mm; height: 11mm; border-radius: 50%;
+    background: var(--g); color: white;
+    font-weight: 800; font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .card img {
+    width: 65mm; height: 65mm;
+    display: block; image-rendering: crisp-edges;
+  }
+
+  .label {
+    margin-top: 3mm; font-size: 12px;
+    font-weight: 800; color: var(--c);
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+
+  .code { font-size: 8px; color: #CCC; margin-top: 1mm; }
+
+  @media print {
+    body { margin: 0; }
+    .no-print { display: none !important; }
+    .page { page-break-after: always; }
+  }
+
+  .no-print {
+    position: fixed; top: 10px; right: 10px;
+    background: #7F77DD; color: white; border: none;
+    border-radius: 8px; padding: 10px 20px;
+    font-size: 14px; cursor: pointer; font-weight: 700;
+    z-index: 999;
+  }
+</style>
+</head>
+<body>
+<button class="no-print" onclick="window.print()">🖨️ Imprimer</button>
+<div id="pages"></div>
+<script>
+const GROUPES = [
+  {num:1, g:"#C62828"},{num:2, g:"#1565C0"},
+  {num:3, g:"#2E7D32"},{num:4, g:"#E65100"},{num:5, g:"#6A1B9A"},
+];
+const NATURES = [
+  {label:"Déterminant", qr:"DETERMINANT", c:"#8B4513"},
+  {label:"Nom",         qr:"NOM",         c:"#1565C0"},
+  {label:"Adjectif",    qr:"ADJECTIF",    c:"#2E7D32"},
+  {label:"Pronom",      qr:"PRONOM",      c:"#6A1B9A"},
+  {label:"Verbe",       qr:"VERBE",       c:"#C62828"},
+  {label:"Adverbe",     qr:"ADVERBE",     c:"#E65100"},
+  {label:"Préposition",  qr:"PREPOSITION", c:"#212121"},
+  {label:"Conjonction", qr:"CONJONCTION", c:"#E91E63"},
+];
+
+// API QR Server — simple, fiable, pas de clé requise
+function qrUrl(data) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=20&ecc=M&data=${encodeURIComponent(data)}`;
+}
+
+const container = document.getElementById('pages');
+
+GROUPES.forEach(grp => {
+  for (let planche = 0; planche < 2; planche++) {
+    const subset = NATURES.slice(planche*4, planche*4+4);
+    const page = document.createElement('div');
+    page.className = 'page';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'page-header';
+    hdr.textContent = `Groupe ${grp.num} — Verso QR code — planche ${planche+1}/2 — à coller dos à dos avec les cartes recto`;
+    page.appendChild(hdr);
+
+    subset.forEach(nat => {
+      const data = `G${grp.num}-${nat.qr}`;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--c', nat.c);
+      card.style.setProperty('--g', grp.g);
+      card.innerHTML = `
+        <div class="badge">G${grp.num}</div>
+        <img src="${qrUrl(data)}" alt="${data}" />
+        <div class="label">${nat.label}</div>
+        <div class="code">${data}</div>
+      `;
+      page.appendChild(card);
+    });
+    container.appendChild(page);
+  }
+});
+</script>
+</body>
+</html>
