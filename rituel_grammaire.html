@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rituel Grammaire</title>
-<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap');
 
@@ -1049,37 +1049,41 @@ async function toggleCamera() {
 
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: {ideal:640}, height: {ideal:480} }
-    });
-    state.stream = stream;
     state.cameraActive = true;
     const video = document.getElementById('camera-video');
-    video.srcObject = stream;
     document.getElementById('camera-container').style.display = 'block';
     document.getElementById('btn-camera').textContent = '📷 Arrêter la caméra';
-    document.getElementById('camera-info').textContent = 'Présentez une carte devant la caméra';
+    document.getElementById('camera-info').textContent = 'Démarrage de la caméra...';
 
-    video.onloadedmetadata = () => {
-      document.getElementById('camera-info').textContent = `Caméra prête : ${video.videoWidth}x${video.videoHeight}px`;
-    };
-    video.oncanplay = () => {
-      document.getElementById('camera-info').textContent = `Flux actif : ${video.videoWidth}x${video.videoHeight}px — présentez une carte`;
-    };
-    // Scan loop — démarre seulement quand la vidéo joue
-    video.addEventListener('playing', () => {
-      if (state.scanInterval) clearInterval(state.scanInterval);
-      state.scanInterval = setInterval(scanFrame, 200);
-    }, { once: false });
-    // Fallback si playing ne se déclenche pas
-    state.scanInterval = setInterval(scanFrame, 200);
+    // ZXing BrowserQRCodeReader — lit directement depuis la vidéo
+    const codeReader = new ZXing.BrowserQRCodeReader();
+    state.codeReader = codeReader;
+
+    const devices = await codeReader.getVideoInputDevices();
+    const deviceId = devices.length > 0 ? devices[0].deviceId : undefined;
+
+    codeReader.decodeFromInputVideoDeviceContinuously(deviceId, video, (result, err) => {
+      if (result) {
+        document.getElementById('camera-info').textContent = '🔍 Lu : ' + result.getText();
+        handleQR(result.getText());
+      } else if (err && !(err instanceof ZXing.NotFoundException)) {
+        document.getElementById('camera-info').textContent = 'Caméra active — présentez une carte';
+      } else {
+        document.getElementById('camera-info').textContent = 'Caméra active — présentez une carte';
+      }
+    });
+
   } catch(e) {
-    document.getElementById('camera-info').textContent = '⚠ Caméra non disponible — utilisez les boutons ci-dessous';
+    document.getElementById('camera-info').textContent = '⚠ Caméra non disponible — utilisez la saisie manuelle';
     showManualButtons();
   }
 }
 
 function stopCamera() {
+  if (state.codeReader) {
+    state.codeReader.reset();
+    state.codeReader = null;
+  }
   if (state.stream) {
     state.stream.getTracks().forEach(t => t.stop());
     state.stream = null;
@@ -1092,29 +1096,7 @@ function stopCamera() {
 }
 
 function scanFrame() {
-  const video = document.getElementById('camera-video');
-  const canvas = document.getElementById('camera-canvas');
-  if (!video.videoWidth) {
-    document.getElementById('camera-info').textContent = '⚠ Pas de flux vidéo';
-    return;
-  }
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
-
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-  try {
-    const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvas);
-    const binaryBitmap = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(luminanceSource));
-    const result = new ZXing.MultiFormatReader().decode(binaryBitmap);
-    document.getElementById('camera-info').textContent = '🔍 Lu : ' + result.getText();
-    handleQR(result.getText());
-  } catch(e) {
-    document.getElementById('camera-info').textContent = `Flux OK : ${canvas.width}x${canvas.height}px — scan en cours...`;
-  }
+  // Plus utilisé — ZXing gère le scan en continu
 }
 
 function handleQR(data) {
