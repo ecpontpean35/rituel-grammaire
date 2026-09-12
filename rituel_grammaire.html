@@ -359,20 +359,14 @@ textarea:focus { outline: none; border-color: #7F77DD; }
 <!-- ══════════════════ JEU ══════════════════ -->
 <div id="screen-game" class="screen" style="padding:0">
 
-  <!-- Barre du haut -->
   <div class="top-bar" style="padding:10px 12px 0">
     <h2 id="game-title" style="font-size:12px;color:var(--muted)"></h2>
     <button class="btn btn-danger btn-sm" onclick="endGame()">Terminer</button>
   </div>
 
-  <!-- Phrase -->
   <div class="game-phrase" id="game-phrase" style="margin:8px 12px"></div>
 
-  <!-- Scores compacts -->
-  <div id="groups-grid" style="display:flex;gap:12px;padding:0 12px 6px;justify-content:center;align-items:flex-end"></div>
-
-  <!-- Prairie + chenilles -->
-  <div id="prairie-wrap" style="position:relative;overflow:hidden;border-radius:0;margin:0">
+  <div id="prairie-wrap" style="position:relative;overflow:hidden;margin:0 0 8px">
     <svg id="prairie-svg" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block" viewBox="0 0 680 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <rect width="680" height="200" fill="#E8F4FD"/>
       <ellipse cx="80" cy="35" rx="35" ry="14" fill="white" opacity=".7"/>
@@ -401,25 +395,20 @@ textarea:focus { outline: none; border-color: #7F77DD; }
       <circle cx="570" cy="162" r="3.5" fill="#F06292"/>
       <circle cx="640" cy="164" r="3" fill="#FFD54F"/>
     </svg>
-    <div style="position:relative;z-index:1;padding:10px 12px">
-      <div id="track-prairie" style="background:rgba(255,255,255,.45);border-radius:12px;padding:8px 12px;border:0.5px solid rgba(255,255,255,.6)"></div>
+    <div style="position:relative;z-index:1;padding:8px 12px">
+      <div id="groups-grid" style="display:flex;gap:8px;justify-content:center;margin-bottom:8px"></div>
+      <div id="track-prairie" style="background:rgba(255,255,255,.4);border-radius:10px;padding:8px 10px;border:0.5px solid rgba(255,255,255,.6)"></div>
     </div>
   </div>
 
-  <!-- Zone scan -->
   <div class="scan-zone" style="border-radius:0;border-left:0;border-right:0;border-bottom:0">
     <div class="current-word-display" id="current-word"></div>
-
-    <!-- Caméra cachée -->
     <video id="camera-video" autoplay playsinline muted style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></video>
     <canvas id="camera-canvas" style="display:none"></canvas>
-
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:6px" id="camera-info"></div>
-    <div class="scan-status" id="scan-status"></div>
-
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:8px" id="camera-info"></div>
+    <div id="scan-status" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn btn-sm" id="btn-camera" onclick="toggleCamera()">📷 Activer la caméra</button>
-      <button class="btn btn-sm" onclick="stopCamera();showManualButtons()">⌨️ Saisie manuelle</button>
       <button class="btn btn-primary btn-sm" id="btn-validate" onclick="validateRound()" style="display:none">Valider ✓</button>
     </div>
   </div>
@@ -997,9 +986,9 @@ function wormHTML(g, pct) {
 function renderGroups() {
   const el = document.getElementById('groups-grid');
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => `
-    <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
-      <div id="gbadge-${i}" style="width:30px;height:30px;border-radius:50%;background:${GROUP_COLORS[i]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;transition:all .2s">G${i+1}</div>
-      <div id="gscore-${i}" style="font-size:12px;font-weight:700;color:${GROUP_COLORS[i]}">0</div>
+    <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.6);border-radius:20px;padding:3px 10px">
+      <div id="gbadge-${i}" style="width:22px;height:22px;border-radius:50%;background:${GROUP_COLORS[i]};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;transition:all .2s">G${i+1}</div>
+      <span id="gscore-${i}" style="font-size:12px;font-weight:700;color:${GROUP_COLORS[i]}">0</span>
     </div>`).join('');
 }
 
@@ -1076,12 +1065,9 @@ function renderScanStatus() {
   const el = document.getElementById('scan-status');
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
     const ans = state.answers[i];
-    return `<div class="scan-group-row ${ans ? 'scanned-ok' : ''}" id="sgrow-${i}" style="--gc:${GROUP_COLORS[i]}">
-      <div class="scan-dot"></div>
-      <div class="scan-gname" style="color:${GROUP_COLORS[i]}">Groupe ${i+1}</div>
-      <div class="scan-result ${ans ? 'filled' : ''}" id="sgres-${i}">
-        ${ans ? `<span style="color:#1D9E75;font-weight:700">✓ Réponse enregistrée</span>` : 'en attente...'}
-      </div>
+    return `<div style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:${GROUP_COLORS[i]}">
+      <div style="width:10px;height:10px;border-radius:50%;background:${ans?'#1D9E75':GROUP_COLORS[i]};transition:background .2s"></div>
+      G${i+1} ${ans ? '✓' : ''}
     </div>`;
   }).join('');
   const allDone = state.answers.every(a => a !== null);
