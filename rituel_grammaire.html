@@ -140,21 +140,10 @@ h1, h2, h3 { font-family: 'Baloo 2', cursive; }
 
 /* Groupes */
 .groups-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
-.group-card {
-  background: var(--card);
-  border: 2px solid var(--gc);
-  border-radius: 12px;
-  padding: 10px 6px;
-  text-align: center;
-}
-.group-card .gname { font-size: 12px; font-weight: 700; color: var(--gc); }
-.group-card .gscore { font-size: 26px; font-weight: 800; font-family: 'Baloo 2', cursive; color: var(--gc); }
-.group-card .ganswer { font-size: 10px; color: var(--muted); margin-top: 2px; min-height: 14px; }
 
 /* Chenilles */
 .track-section {
@@ -380,7 +369,7 @@ textarea:focus { outline: none; border-color: #7F77DD; }
   <div class="game-phrase" id="game-phrase" style="margin:8px 12px"></div>
 
   <!-- Scores compacts -->
-  <div id="groups-grid" style="display:flex;gap:6px;padding:0 12px;margin-bottom:8px"></div>
+  <div id="groups-grid" style="display:flex;gap:12px;padding:0 12px 6px;justify-content:center;align-items:flex-end"></div>
 
   <!-- Prairie + chenilles -->
   <div id="prairie-wrap" style="position:relative;overflow:hidden;border-radius:0;margin:0">
@@ -1008,11 +997,9 @@ function wormHTML(g, pct) {
 function renderGroups() {
   const el = document.getElementById('groups-grid');
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => `
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
-      <div style="width:32px;height:32px;border-radius:50%;background:${GROUP_COLORS[i]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;position:relative" id="gbadge-${i}">
-        G${i+1}
-      </div>
-      <div style="font-size:13px;font-weight:700;color:${GROUP_COLORS[i]};line-height:1" id="gscore-${i}">0</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div id="gbadge-${i}" style="width:30px;height:30px;border-radius:50%;background:${GROUP_COLORS[i]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;transition:all .2s">G${i+1}</div>
+      <div id="gscore-${i}" style="font-size:12px;font-weight:700;color:${GROUP_COLORS[i]}">0</div>
     </div>`).join('');
 }
 
