@@ -1106,11 +1106,9 @@ async function startCamera() {
   try {
     state.cameraActive = true;
     const video = document.getElementById('camera-video');
-    document.getElementById('camera-container').style.display = 'block';
     document.getElementById('btn-camera').textContent = '📷 Arrêter la caméra';
     document.getElementById('camera-info').textContent = 'Démarrage de la caméra...';
 
-    // ZXing BrowserQRCodeReader — lit directement depuis la vidéo
     const codeReader = new ZXing.BrowserQRCodeReader();
     state.codeReader = codeReader;
 
@@ -1121,10 +1119,8 @@ async function startCamera() {
       if (result) {
         document.getElementById('camera-info').textContent = '🔍 Lu : ' + result.getText();
         handleQR(result.getText());
-      } else if (err && !(err instanceof ZXing.NotFoundException)) {
-        document.getElementById('camera-info').textContent = 'Caméra active — présentez une carte';
       } else {
-        document.getElementById('camera-info').textContent = 'Caméra active — présentez une carte';
+        document.getElementById('camera-info').textContent = '📷 Caméra active — présentez une carte';
       }
     });
 
