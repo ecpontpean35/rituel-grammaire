@@ -524,7 +524,7 @@ const QR_MAP = {
   "VERBE":"VER","ADVERBE":"ADV","PREPOSITION":"PREP","CONJONCTION":"CON"
 };
 
-const GROUP_COLORS = ["#C62828","#1565C0","#2E7D32","#6A1B9A"];
+const GROUP_COLORS = ["#C62828","#1565C0","#2E7D32","#E65100"];
 const NB_GROUPS = 4;
 
 let state = {
@@ -1008,9 +1008,11 @@ function wormHTML(g, pct) {
 function renderGroups() {
   const el = document.getElementById('groups-grid');
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => `
-    <div style="flex:1;background:${GROUP_COLORS[i]}22;border:1.5px solid ${GROUP_COLORS[i]}66;border-radius:10px;padding:6px 8px;text-align:center">
-      <div style="font-size:22px;font-weight:700;font-family:'Baloo 2',cursive;color:${GROUP_COLORS[i]}" id="gscore-${i}">0</div>
-      <div style="font-size:10px;color:${GROUP_COLORS[i]};opacity:.7" id="ganswer-${i}">—</div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+      <div style="width:32px;height:32px;border-radius:50%;background:${GROUP_COLORS[i]};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;position:relative" id="gbadge-${i}">
+        G${i+1}
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${GROUP_COLORS[i]};line-height:1" id="gscore-${i}">0</div>
     </div>`).join('');
 }
 
@@ -1073,6 +1075,12 @@ function loadWord(idx) {
   document.getElementById('current-word').textContent = state.words[idx];
   document.getElementById('result-overlay').classList.remove('show');
   document.getElementById('btn-validate').style.display = 'none';
+
+  // Réinitialiser les badges groupes
+  for (let i = 0; i < NB_GROUPS; i++) {
+    const badge = document.getElementById(`gbadge-${i}`);
+    if (badge) { badge.textContent = `G${i+1}`; badge.style.background = GROUP_COLORS[i]; badge.style.boxShadow = 'none'; }
+  }
 
   renderScanStatus();
 }
@@ -1164,6 +1172,9 @@ function handleQR(data) {
 
   const row = document.getElementById(`sgrow-${groupIdx}`);
   if (row) row.classList.add('scanned-ok');
+  // Coche sur le badge
+  const badge = document.getElementById(`gbadge-${groupIdx}`);
+  if (badge) { badge.textContent = '✓'; badge.style.background = '#1D9E75'; }
   renderScanStatus();
 
   // Flash plein écran : groupe seulement, pas la nature
@@ -1264,16 +1275,12 @@ function validateRound() {
 
   state.history.push({ word: state.words[state.currentWord], correct, results: [...results] });
 
-  // Mise à jour scores + chenilles
+  // Mise à jour scores + badges
   for (let i = 0; i < NB_GROUPS; i++) {
     const sc = document.getElementById(`gscore-${i}`);
     if (sc) sc.textContent = state.scores[i];
-    const an = document.getElementById(`ganswer-${i}`);
-    if (an) {
-      const n = NATURES_DEF.find(x => x.code === state.answers[i]);
-      an.textContent = n ? n.label : '?';
-      an.style.color = results[i].ok ? '#1D9E75' : '#C62828';
-    }
+    const badge = document.getElementById(`gbadge-${i}`);
+    if (badge) badge.style.boxShadow = results[i].ok ? `0 0 0 3px #1D9E75` : `0 0 0 3px #E24B4A`;
   }
   updateTrack('track-section');
 
