@@ -1141,7 +1141,6 @@ function stopCamera() {
   }
   if (state.scanInterval) { clearInterval(state.scanInterval); state.scanInterval = null; }
   state.cameraActive = false;
-  document.getElementById('camera-container').style.display = 'none';
   document.getElementById('btn-camera').textContent = '📷 Activer la caméra';
   document.getElementById('camera-info').textContent = '';
 }
