@@ -495,8 +495,8 @@ const QR_MAP = {
   "VERBE":"VER","ADVERBE":"ADV","PREPOSITION":"PREP","CONJONCTION":"CON"
 };
 
-const GROUP_COLORS = ["#C62828","#1565C0","#2E7D32","#E65100","#6A1B9A"];
-const NB_GROUPS = 5;
+const GROUP_COLORS = ["#2E7D32","#C62828","#6A1B9A","#1565C0"];
+const NB_GROUPS = 4;
 
 let state = {
   phrase: null, words: [], wordNatures: [],
@@ -1023,17 +1023,14 @@ function renderScanStatus() {
   const el = document.getElementById('scan-status');
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
     const ans = state.answers[i];
-    const n = ans ? NATURES_DEF.find(x => x.code === ans) : null;
     return `<div class="scan-group-row ${ans ? 'scanned-ok' : ''}" id="sgrow-${i}" style="--gc:${GROUP_COLORS[i]}">
       <div class="scan-dot"></div>
       <div class="scan-gname" style="color:${GROUP_COLORS[i]}">Groupe ${i+1}</div>
       <div class="scan-result ${ans ? 'filled' : ''}" id="sgres-${i}">
-        ${ans ? `<span style="background:${n.bg};color:${n.color};padding:2px 10px;border-radius:20px;font-size:12px">${n.label}</span>` : 'en attente...'}
+        ${ans ? `<span style="color:#1D9E75;font-weight:700">✓ Réponse enregistrée</span>` : 'en attente...'}
       </div>
-      ${ans ? `<span style="font-size:16px">✓</span>` : ''}
     </div>`;
   }).join('');
-  // Afficher valider si tous répondus
   const allDone = state.answers.every(a => a !== null);
   document.getElementById('btn-validate').style.display = allDone ? 'inline-block' : 'none';
 }
@@ -1176,12 +1173,11 @@ function showManualButtons() {
   // Les boutons nature apparaissent sur chaque ligne de groupe
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
     const ans = state.answers[i];
-    const n = ans ? NATURES_DEF.find(x => x.code === ans) : null;
     return `<div class="scan-group-row ${ans ? 'scanned-ok' : ''}" style="--gc:${GROUP_COLORS[i]};flex-wrap:wrap">
       <div class="scan-dot"></div>
       <div class="scan-gname" style="color:${GROUP_COLORS[i]}">Groupe ${i+1}</div>
       ${ans
-        ? `<span style="background:${n.bg};color:${n.color};padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700">${n.label} ✓</span>`
+        ? `<span style="color:#1D9E75;font-weight:700">✓ Réponse enregistrée</span>`
         : `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;width:100%">
             ${NATURES_DEF.map(nd => `<button onclick="setManualAnswer(${i},'${nd.code}')"
               style="background:${nd.bg};color:${nd.color};border:1.5px solid ${nd.color};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer">
