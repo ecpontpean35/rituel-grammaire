@@ -256,10 +256,7 @@ h1, h2, h3 { font-family: 'Baloo 2', cursive; }
   animation: scan-line 1.5s ease-in-out infinite;
   top: 50%; margin-top: -70px;
 }
-@keyframes scan-line {
-  0%   { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(140px); opacity: .3; }
-}
+@keyframes bworm{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
 
 .camera-info {
   text-align: center; font-size: 13px; color: var(--muted);
@@ -371,38 +368,70 @@ textarea:focus { outline: none; border-color: #7F77DD; }
 </div>
 
 <!-- ══════════════════ JEU ══════════════════ -->
-<div id="screen-game" class="screen">
-  <div class="top-bar">
-    <h2 id="game-title" style="font-size:13px;color:var(--muted)"></h2>
+<div id="screen-game" class="screen" style="padding:0">
+
+  <!-- Barre du haut -->
+  <div class="top-bar" style="padding:10px 12px 0">
+    <h2 id="game-title" style="font-size:12px;color:var(--muted)"></h2>
     <button class="btn btn-danger btn-sm" onclick="endGame()">Terminer</button>
   </div>
 
-  <div class="game-phrase" id="game-phrase"></div>
-  <div class="groups-grid" id="groups-grid"></div>
-  <div class="track-section" id="track-section"></div>
+  <!-- Phrase -->
+  <div class="game-phrase" id="game-phrase" style="margin:8px 12px"></div>
 
-  <!-- Zone scan caméra -->
-  <div class="scan-zone">
+  <!-- Scores compacts -->
+  <div id="groups-grid" style="display:flex;gap:6px;padding:0 12px;margin-bottom:8px"></div>
+
+  <!-- Prairie + chenilles -->
+  <div id="prairie-wrap" style="position:relative;overflow:hidden;border-radius:0;margin:0">
+    <svg id="prairie-svg" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;display:block" viewBox="0 0 680 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="680" height="200" fill="#E8F4FD"/>
+      <ellipse cx="80" cy="35" rx="35" ry="14" fill="white" opacity=".7"/>
+      <ellipse cx="108" cy="28" rx="26" ry="12" fill="white" opacity=".7"/>
+      <ellipse cx="340" cy="25" rx="42" ry="15" fill="white" opacity=".7"/>
+      <ellipse cx="368" cy="18" rx="28" ry="12" fill="white" opacity=".7"/>
+      <ellipse cx="560" cy="38" rx="34" ry="13" fill="white" opacity=".7"/>
+      <circle cx="620" cy="28" r="22" fill="#FFD54F" opacity=".85"/>
+      <circle cx="620" cy="28" r="16" fill="#FFE082"/>
+      <ellipse cx="160" cy="90" rx="6" ry="3.5" fill="#F48FB1" opacity=".7" transform="rotate(-20,160,90)"/>
+      <ellipse cx="169" cy="90" rx="6" ry="3.5" fill="#F48FB1" opacity=".7" transform="rotate(20,169,90)"/>
+      <circle cx="164" cy="90" r="1.8" fill="#AD1457" opacity=".7"/>
+      <ellipse cx="460" cy="70" rx="6" ry="3.5" fill="#CE93D8" opacity=".7" transform="rotate(-25,460,70)"/>
+      <ellipse cx="469" cy="70" rx="6" ry="3.5" fill="#CE93D8" opacity=".7" transform="rotate(25,469,70)"/>
+      <circle cx="464" cy="70" r="1.8" fill="#6A1B9A" opacity=".7"/>
+      <rect x="0" y="140" width="680" height="60" fill="#66BB6A"/>
+      <ellipse cx="170" cy="145" rx="220" ry="40" fill="#81C784"/>
+      <ellipse cx="520" cy="148" rx="220" ry="38" fill="#81C784"/>
+      <rect x="0" y="165" width="680" height="35" fill="#4CAF50"/>
+      <circle cx="40" cy="163" r="3.5" fill="#F06292"/><circle cx="40" cy="158" r="2" fill="#FCE4EC"/>
+      <circle cx="120" cy="164" r="3" fill="#FFD54F"/>
+      <circle cx="210" cy="162" r="3.5" fill="#BA68C8"/>
+      <circle cx="300" cy="164" r="3" fill="#F06292"/>
+      <circle cx="390" cy="162" r="3.5" fill="#FFD54F"/>
+      <circle cx="480" cy="164" r="3" fill="#BA68C8"/>
+      <circle cx="570" cy="162" r="3.5" fill="#F06292"/>
+      <circle cx="640" cy="164" r="3" fill="#FFD54F"/>
+    </svg>
+    <div style="position:relative;z-index:1;padding:10px 12px">
+      <div id="track-prairie" style="background:rgba(255,255,255,.45);border-radius:12px;padding:8px 12px;border:0.5px solid rgba(255,255,255,.6)"></div>
+    </div>
+  </div>
+
+  <!-- Zone scan -->
+  <div class="scan-zone" style="border-radius:0;border-left:0;border-right:0;border-bottom:0">
     <div class="current-word-display" id="current-word"></div>
 
-    <div class="camera-container" id="camera-container" style="display:none">
-      <video id="camera-video" autoplay playsinline muted></video>
-      <canvas id="camera-canvas"></canvas>
-      <div class="camera-overlay">
-        <div class="scan-frame"></div>
-        <div class="scan-anim"></div>
-      </div>
-    </div>
+    <!-- Caméra cachée -->
+    <video id="camera-video" autoplay playsinline muted style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></video>
+    <canvas id="camera-canvas" style="display:none"></canvas>
 
-    <div class="camera-info" id="camera-info"></div>
-    <div class="camera-active-group" id="camera-active-group"></div>
-
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:6px" id="camera-info"></div>
     <div class="scan-status" id="scan-status"></div>
 
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
-      <button class="btn" id="btn-camera" onclick="toggleCamera()">📷 Activer la caméra</button>
-      <button class="btn" onclick="stopCamera();showManualButtons()">⌨️ Saisie manuelle</button>
-      <button class="btn btn-primary" id="btn-validate" onclick="validateRound()" style="display:none">Valider ✓</button>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+      <button class="btn btn-sm" id="btn-camera" onclick="toggleCamera()">📷 Activer la caméra</button>
+      <button class="btn btn-sm" onclick="stopCamera();showManualButtons()">⌨️ Saisie manuelle</button>
+      <button class="btn btn-primary btn-sm" id="btn-validate" onclick="validateRound()" style="display:none">Valider ✓</button>
     </div>
   </div>
 </div>
@@ -939,6 +968,7 @@ function startGame() {
     savePhrases(saved);
   }
   state.scores = Array(NB_GROUPS).fill(0);
+  laps.fill(0);
   state.answers = Array(NB_GROUPS).fill(null);
   state.currentWord = 0;
   state.history = [];
@@ -958,47 +988,75 @@ function renderGamePhrase() {
   ).join(' ');
 }
 
+const CIRCUIT = 20;
+const laps = Array(NB_GROUPS).fill(0);
+
+function wormHTML(g, pct) {
+  const gc = GROUP_COLORS[g];
+  const segs = ['rgba(255,255,255,.7)', gc, 'rgba(255,255,255,.7)'];
+  return `<div style="position:absolute;top:1px;left:${pct}%;display:flex;align-items:center;transition:left .7s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 1px 3px rgba(0,0,0,.25))">
+    ${segs.map((s,k)=>`<div style="width:11px;height:11px;border-radius:50%;background:${gc};border:1.5px solid rgba(255,255,255,.4);animation:bworm .4s ease-in-out ${k*.13}s infinite alternate"></div>`).join('')}
+    <div style="width:14px;height:14px;border-radius:50%;background:${gc};border:1.5px solid rgba(255,255,255,.5);position:relative;flex-shrink:0">
+      <div style="position:absolute;top:-5px;left:2px;width:1.5px;height:5px;border-radius:2px;background:${gc};transform:rotate(-25deg)"></div>
+      <div style="position:absolute;top:-5px;right:2px;width:1.5px;height:5px;border-radius:2px;background:${gc};transform:rotate(25deg)"></div>
+      <div style="position:absolute;width:3px;height:3px;border-radius:50%;background:white;top:2px;left:1px"></div>
+      <div style="position:absolute;width:3px;height:3px;border-radius:50%;background:white;top:2px;right:1px"></div>
+    </div>
+  </div>`;
+}
+
 function renderGroups() {
   const el = document.getElementById('groups-grid');
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => `
-    <div class="group-card" style="--gc:${GROUP_COLORS[i]}">
-      <div class="gname">Groupe ${i+1}</div>
-      <div class="gscore" id="gscore-${i}">0</div>
-      <div class="ganswer" id="ganswer-${i}">—</div>
+    <div style="flex:1;background:${GROUP_COLORS[i]}22;border:1.5px solid ${GROUP_COLORS[i]}66;border-radius:10px;padding:6px 8px;text-align:center">
+      <div style="font-size:22px;font-weight:700;font-family:'Baloo 2',cursive;color:${GROUP_COLORS[i]}" id="gscore-${i}">0</div>
+      <div style="font-size:10px;color:${GROUP_COLORS[i]};opacity:.7" id="ganswer-${i}">—</div>
     </div>`).join('');
 }
 
 function renderTrack(containerId) {
-  const el = document.getElementById(containerId);
-  const max = Math.max(state.maxScore, 1);
+  const el = document.getElementById('track-prairie');
+  if (!el) return;
   el.innerHTML = Array.from({length: NB_GROUPS}, (_,i) => {
-    const pct = Math.min(100, (state.scores[i]/max)*100);
-    const leftPct = Math.min(96, pct);
-    return `<div class="track-row">
-      <div class="track-label" style="color:${GROUP_COLORS[i]}">G${i+1}</div>
-      <div class="track-bar">
-        <div class="track-bg"></div>
-        <div class="track-fill" id="tfill-${containerId}-${i}"
-             style="width:${pct}%;background:${GROUP_COLORS[i]}"></div>
-        <div class="track-worm" id="tworm-${containerId}-${i}"
-             style="left:calc(${leftPct}% + 13px)">🐛</div>
+    const pct = (state.scores[i] % CIRCUIT) / CIRCUIT * 100;
+    const lapCount = laps[i];
+    const leavesHtml = Array.from({length: Math.min(lapCount, 5)}, (_,k) =>
+      `<span style="position:absolute;font-size:12px;top:0;left:${3+k*17}%;pointer-events:none">🍃</span>`).join('');
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:${i<NB_GROUPS-1?'7':'0'}px">
+      <div style="flex:1;position:relative;height:30px">
+        <div style="position:absolute;top:9px;bottom:9px;left:0;right:0;border-radius:20px;background:rgba(0,0,0,.1)"></div>
+        <div style="position:absolute;top:9px;bottom:9px;left:0;border-radius:20px;width:${pct}%;background:${GROUP_COLORS[i]};opacity:.3;transition:width .7s cubic-bezier(.34,1.56,.64,1)" id="wfill-${i}"></div>
+        ${leavesHtml}
+        <div id="wworm-${i}">${wormHTML(i, pct)}</div>
       </div>
-      <div class="track-pts" style="color:${GROUP_COLORS[i]}" id="tpts-${containerId}-${i}">${state.scores[i]}</div>
+      <div style="font-size:12px;font-weight:700;min-width:22px;text-align:right;color:${GROUP_COLORS[i]};text-shadow:0 1px 2px rgba(255,255,255,.9)" id="wpts-${i}">${state.scores[i]}</div>
     </div>`;
   }).join('');
+  // Ajuster hauteur prairie
+  setTimeout(() => {
+    const wrap = document.getElementById('prairie-wrap');
+    if (wrap) {
+      const svg = document.getElementById('prairie-svg');
+      if (svg) svg.setAttribute('viewBox', `0 0 680 ${Math.max(wrap.offsetHeight, 150)}`);
+    }
+  }, 50);
 }
 
 function updateTrack(containerId) {
-  const max = Math.max(state.maxScore, 1);
   for (let i = 0; i < NB_GROUPS; i++) {
-    const pct = Math.min(100, (state.scores[i]/max)*100);
-    const leftPct = Math.min(96, pct);
-    const fill = document.getElementById(`tfill-${containerId}-${i}`);
-    const worm = document.getElementById(`tworm-${containerId}-${i}`);
-    const pts  = document.getElementById(`tpts-${containerId}-${i}`);
+    const pct = (state.scores[i] % CIRCUIT) / CIRCUIT * 100;
+    const fill = document.getElementById(`wfill-${i}`);
+    const worm = document.getElementById(`wworm-${i}`);
+    const pts  = document.getElementById(`wpts-${i}`);
     if (fill) fill.style.width = pct + '%';
-    if (worm) worm.style.left = `calc(${leftPct}% + 13px)`;
+    if (worm) worm.innerHTML = wormHTML(i, pct);
     if (pts)  pts.textContent = state.scores[i];
+  }
+  // Ajuster hauteur prairie
+  const wrap = document.getElementById('prairie-wrap');
+  if (wrap) {
+    const svg = document.getElementById('prairie-svg');
+    if (svg) svg.setAttribute('viewBox', `0 0 680 ${Math.max(wrap.offsetHeight, 150)}`);
   }
 }
 
@@ -1202,7 +1260,10 @@ function validateRound() {
 
   const results = state.answers.map((ans, i) => {
     const ok = ans === correct;
-    if (ok) state.scores[i]++;
+    if (ok) {
+      state.scores[i]++;
+      if (state.scores[i] % CIRCUIT === 0) laps[i]++;
+    }
     return { group: i, ans, ok };
   });
 
